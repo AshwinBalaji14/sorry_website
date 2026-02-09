@@ -1,270 +1,205 @@
-// Audio Management
-const bgMusic = document.getElementById('background-music');
-const transitionSound = document.getElementById('transition-sound');
-const spellCastSound = document.getElementById('spell-cast-sound');
+// Sweet messages to display
+const messages = [
+    "You're the most beautiful person I know 💕",
+    "Your smile lights up my entire world ✨",
+    "I love the way you laugh 😊",
+    "You're incredibly kind-hearted 💖",
+    "Your presence makes everything better 🌟",
+    "You deserve all the happiness 🎀",
+    "You're absolutely stunning 💗",
+    "Your heart is pure gold ✨",
+    "You make me want to be better 💪",
+    "You're one of a kind 👑",
+    "Your eyes are mesmerizing 💫",
+    "You inspire me every day 🌸",
+    "You're a ray of sunshine ☀️",
+    "Your strength is amazing 💪",
+    "You deserve the world 🌍",
+    "You're absolutely amazing 🌟",
+    "I admire you so much 💕",
+    "You're my definition of beautiful 💖",
+    "Keep that beautiful smile going 😊",
+    "You're going to be okay... and you'll be great 💕"
+];
 
-// Track current scene
-let currentScene = 0;
+let currentMessageIndex = 0;
+let isPlaying = false;
 
-// Set up music
-function initializeAudio() {
-    bgMusic.src = 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1331cec09d.mp3';
-    bgMusic.volume = 0.15;
-    transitionSound.volume = 0.5;
-    spellCastSound.volume = 0.6;
+function startMessages() {
+    if (isPlaying) return;
+    isPlaying = true;
     
-    const playMusic = () => {
-        if (bgMusic.paused) {
-            bgMusic.play().catch(e => console.log('Music autoplay prevented'));
-        }
-        document.removeEventListener('click', playMusic);
-        document.removeEventListener('keydown', playMusic);
-    };
-    
-    document.addEventListener('click', playMusic);
-    document.addEventListener('keydown', playMusic);
+    currentMessageIndex = 0;
+    createConfetti();
+    showNextMessage();
 }
 
-// Play transition sound
-function playTransitionSound() {
-    transitionSound.src = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
-    transitionSound.currentTime = 0;
-    transitionSound.volume = 0.4;
-    transitionSound.play().catch(e => console.log('Sound play failed'));
-}
-
-// Play spell cast sound
-function playSpellCastSound() {
-    spellCastSound.src = 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3';
-    spellCastSound.currentTime = 0;
-    spellCastSound.volume = 0.5;
-    spellCastSound.play().catch(e => console.log('Sound play failed'));
-}
-
-
-// Function to move to next scene
-function nextScene() {
-    playTransitionSound();
-    
-    const screens = document.querySelectorAll('.screen');
-    screens[currentScene].classList.remove('active');
-    currentScene++;
-    if (currentScene < screens.length) {
-        screens[currentScene].classList.add('active');
+function showNextMessage() {
+    if (currentMessageIndex < messages.length) {
+        displayPopup(messages[currentMessageIndex]);
+        currentMessageIndex++;
+        setTimeout(showNextMessage, 2500); // Show next message after 2.5 seconds
+    } else {
+        // Final message
+        setTimeout(() => {
+            displayFinalMessage();
+            isPlaying = false;
+        }, 2000);
     }
 }
 
-// Final incantation - complete the ritual
-function finalIncantation() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = '⚡ COMPLETING THE RITUAL... ⚡';
-
-    playSpellCastSound();
-    createPowerfulSpellEffect();
-
+function displayPopup(message) {
+    const container = document.getElementById('popup-container');
+    
+    const popup = document.createElement('div');
+    popup.className = 'popup-message';
+    popup.innerHTML = `
+        <span class="popup-close" onclick="this.parentElement.remove()">×</span>
+        ${message}
+    `;
+    
+    // Random position
+    const randomX = Math.random() * (window.innerWidth - 300);
+    const randomY = Math.random() * (window.innerHeight - 200) + 100;
+    
+    popup.style.left = randomX + 'px';
+    popup.style.top = randomY + 'px';
+    
+    // Slight rotation
+    popup.style.transform = `rotate(${Math.random() * 6 - 3}deg) scale(1)`;
+    
+    container.appendChild(popup);
+    
+    // Auto-remove after 2 seconds
     setTimeout(() => {
-        nextScene();
+        popup.style.animation = 'popIn 0.5s reverse forwards';
+        setTimeout(() => popup.remove(), 500);
     }, 2000);
 }
 
-// Powerful spell effect
-function createPowerfulSpellEffect() {
-    const center = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2
+function displayFinalMessage() {
+    const container = document.getElementById('popup-container');
+    
+    const finalPopup = document.createElement('div');
+    finalPopup.className = 'popup-message';
+    finalPopup.style.fontSize = '2em';
+    finalPopup.style.padding = '50px 60px';
+    finalPopup.innerHTML = `
+        <span class="popup-close" onclick="location.reload()">×</span>
+        <div style="margin-bottom: 15px;">You are amazing 🌟</div>
+        <div style="font-size: 0.7em; color: #dda0dd;">Click to restart</div>
+    `;
+    
+    finalPopup.style.left = (window.innerWidth / 2 - 200) + 'px';
+    finalPopup.style.top = (window.innerHeight / 2 - 100) + 'px';
+    finalPopup.style.zIndex = '25';
+    
+    finalPopup.onclick = () => {
+        location.reload();
     };
-
-    // Create energy burst
-    for (let i = 0; i < 20; i++) {
-        setTimeout(() => {
-            const particle = document.createElement('div');
-            particle.textContent = '⚡';
-            particle.style.position = 'fixed';
-            particle.style.left = center.x + 'px';
-            particle.style.top = center.y + 'px';
-            particle.style.fontSize = '30px';
-            particle.style.pointerEvents = 'none';
-            particle.style.opacity = '1';
-            particle.style.animation = `energyBurst 1s ease-out forwards`;
-            particle.style.setProperty('--tx', Math.cos(i * Math.PI / 10) * 200 + 'px');
-            particle.style.setProperty('--ty', Math.sin(i * Math.PI / 10) * 200 + 'px');
-
-            document.body.appendChild(particle);
-            setTimeout(() => particle.remove(), 1000);
-        }, i * 50);
-    }
-
-    // Create sparkles
-    createSparkles(30);
-
-    // Screen flash effect
-    const flash = document.createElement('div');
-    flash.style.position = 'fixed';
-    flash.style.top = '0';
-    flash.style.left = '0';
-    flash.style.width = '100%';
-    flash.style.height = '100%';
-    flash.style.background = 'radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent)';
-    flash.style.pointerEvents = 'none';
-    flash.style.animation = 'spellFlash 1s ease-out forwards';
-    document.body.appendChild(flash);
-
-    setTimeout(() => flash.remove(), 1000);
+    
+    container.appendChild(finalPopup);
+    
+    // Create big confetti burst
+    createConfettiBurst();
 }
 
-// Create multiple sparkles
-function createSparkles(count) {
-    for (let i = 0; i < count; i++) {
-        setTimeout(() => {
-            const sparkle = document.createElement('div');
-            sparkle.textContent = ['✨', '💫', '⭐', '🌟'][Math.floor(Math.random() * 4)];
-            sparkle.style.position = 'fixed';
-            sparkle.style.left = Math.random() * 100 + '%';
-            sparkle.style.top = Math.random() * 100 + '%';
-            sparkle.style.fontSize = '24px';
-            sparkle.style.pointerEvents = 'none';
-            sparkle.style.animation = `sparkleFloat ${0.8 + Math.random() * 0.5}s ease-out forwards`;
-
-            document.body.appendChild(sparkle);
-            setTimeout(() => sparkle.remove(), 1500);
-        }, i * 30);
+function createConfetti() {
+    const container = document.querySelector('.confetti-container');
+    const colors = ['pink', 'purple', 'light-pink', 'lavender'];
+    
+    for (let i = 0; i < 30; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]}`;
+        
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const delay = Math.random() * 0.5;
+        const duration = 2 + Math.random() * 3;
+        
+        confetti.style.left = x + 'px';
+        confetti.style.top = y + 'px';
+        confetti.style.animation = `confettiFall ${duration}s ease-in forwards`;
+        confetti.style.animationDelay = delay + 's';
+        
+        container.appendChild(confetti);
     }
 }
 
-// Play final celebration
-function playFinalCelebration() {
-    const body = document.body;
-
-    for (let i = 0; i < 40; i++) {
-        setTimeout(() => {
-            const confetti = document.createElement('div');
-            const emojis = ['✨', '💖', '🌹', '👑', '💫', '🪄', '🎀', '💗'];
-            confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-            confetti.style.position = 'fixed';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.top = '-20px';
-            confetti.style.fontSize = '20px';
-            confetti.style.pointerEvents = 'none';
-            confetti.style.animation = `confettiFall ${2 + Math.random() * 2}s ease-in forwards`;
-            confetti.style.zIndex = '-1';
-
-            body.appendChild(confetti);
-
-            setTimeout(() => confetti.remove(), 5000);
-        }, i * 40);
+function createConfettiBurst() {
+    const container = document.querySelector('.confetti-container');
+    const colors = ['pink', 'purple', 'light-pink', 'lavender'];
+    
+    for (let i = 0; i < 80; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]}`;
+        
+        confetti.style.left = (window.innerWidth / 2) + 'px';
+        confetti.style.top = (window.innerHeight / 2) + 'px';
+        
+        const angle = (i / 80) * Math.PI * 2;
+        const velocity = 5 + Math.random() * 10;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        const startX = window.innerWidth / 2;
+        const startY = window.innerHeight / 2;
+        
+        const endX = startX + vx * 100;
+        const endY = startY + vy * 100;
+        
+        confetti.style.animation = `none`;
+        confetti.style.left = startX + 'px';
+        confetti.style.top = startY + 'px';
+        
+        container.appendChild(confetti);
+        
+        // Use requestAnimationFrame for smooth burst animation
+        animateConfettiBurst(confetti, startX, startY, endX, endY, 1000);
     }
 }
 
-// Add animations to stylesheet dynamically
+function animateConfettiBurst(element, startX, startY, endX, endY, duration) {
+    const startTime = Date.now();
+    
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const x = startX + (endX - startX) * progress;
+        const y = startY + (endY - startY) * progress + (progress * progress * 100); // gravity
+        
+        element.style.left = x + 'px';
+        element.style.top = y + 'px';
+        element.style.opacity = 1 - progress;
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            element.remove();
+        }
+    }
+    
+    animate();
+}
+
+// Add animation for confetti falling
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes sparkleFloat {
-        0% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(0, -50px) scale(0.5);
-        }
-    }
-
-    @keyframes celebrationPop {
-        0% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(var(--tx), var(--ty)) scale(0.3);
-        }
-    }
-
     @keyframes confettiFall {
-        0% {
-            opacity: 1;
-            transform: translateY(0) rotate(0deg);
-        }
-        100% {
-            opacity: 0;
+        to {
             transform: translateY(100vh) rotate(720deg);
-        }
-    }
-
-    @keyframes energyBurst {
-        0% {
-            opacity: 1;
-            transform: translate(0, 0) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(var(--tx), var(--ty)) scale(0.2);
-        }
-    }
-
-    @keyframes spellFlash {
-        0% {
-            opacity: 0.8;
-        }
-        100% {
             opacity: 0;
         }
     }
 `;
 document.head.appendChild(style);
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    initializeAudio();
-    
-    // Trigger celebration when success screen is shown
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            const successScreen = document.querySelector('.success-screen.active');
-            if (successScreen) {
-                playFinalCelebration();
-                observer.disconnect();
-            }
-        });
-    });
-
-    const config = { attributes: true, attributeFilter: ['class'], subtree: true };
-    observer.observe(document.querySelector('.container'), config);
-});
-
-// Letter Modal Functions
-function openLetter() {
-    const letterModal = document.getElementById('letterModal');
-    const letterOverlay = document.getElementById('letterOverlay');
-    
-    // Trigger the animation
-    letterModal.classList.add('active');
-    letterOverlay.classList.add('active');
-    
-    // Play spell cast sound for dramatic effect
-    playSpellCastSound();
-}
-
-function closeLetter() {
-    const letterModal = document.getElementById('letterModal');
-    const letterOverlay = document.getElementById('letterOverlay');
-    
-    letterModal.classList.remove('active');
-    letterOverlay.classList.remove('active');
-}
-
-// Close letter when pressing Escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeLetter();
+// Allow clicking anywhere to start
+document.addEventListener('click', (e) => {
+    if (e.target.matches('.start-btn') || e.target.parentElement.matches('.start-btn')) {
+        return;
     }
-});
-
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-    if (e.key === ' ') {
-        e.preventDefault();
-        nextScene();
-    }
+    // Optional: Allow clicking anywhere to start
+    // startMessages();
 });
