@@ -511,13 +511,7 @@ body {
 .letter-text .em2{color:var(--lavender);font-style:normal}
 .letter-sig{font-family:'Satisfy',cursive;font-size:1.8rem;color:var(--gold);margin-top:2rem;text-align:right}
 
-/* ── MUSIC BUTTON ── */
-#musicToggle{position:fixed;bottom:5rem;right:1.5rem;z-index:9000;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#7b2d8b,#c084fc);border:2px solid var(--lavender);color:white;font-size:1.4rem;cursor:pointer;box-shadow:0 0 28px rgba(192,132,252,.5);display:flex;align-items:center;justify-content:center;transition:all .3s;animation:btnGlow 2s ease-in-out infinite}
-#musicToggle:hover{transform:scale(1.18)}
 
-/* ── MUSIC VISUALIZATION ── */
-.music-bar{position:absolute;bottom:5.5rem;right:2rem;width:30px;height:30px;animation:barAnimate 1.2s ease-in-out infinite;pointer-events:none}
-.music-bar.active{animation:barAnimate .6s ease-in-out infinite}
 
 /* ── MOBILE ── */
 @media(max-width:768px){
@@ -829,8 +823,7 @@ body {
   <button class="nav-btn" id="nextBtn" onclick="changePage(1)">NEXT →</button>
 </div>
 
-<!-- MUSIC -->
-<button id="musicToggle" onclick="toggleMusic()" title="Toggle magical ambience">🎵</button>
+
 
 <script>
 // ── STARFIELD ──
@@ -906,23 +899,9 @@ function enterSite(){
   setTimeout(spawnFireworks,1400);
   drawNatalChart();
   startCountdown();
-  startBackgroundMusic();
 }
 
-function startBackgroundMusic(){
-  if(!audioCtx){ 
-    audioCtx=new(window.AudioContext||window.webkitAudioContext)(); 
-    masterVolume=audioCtx.createGain(); 
-    masterVolume.connect(audioCtx.destination); 
-    masterVolume.gain.value=0.15;
-    gainNode=audioCtx.createGain(); 
-    gainNode.connect(masterVolume); 
-  }
-  musicOn=true;
-  const btn=document.getElementById('musicToggle');
-  btn.textContent='🔊';
-  setTimeout(playBirthdayMelody,500);
-}
+
 
 // ── PAGE SYSTEM ──
 const TOTAL=10;
@@ -1080,9 +1059,6 @@ function flipCard(card){
   card.classList.remove('flipped'); void card.offsetWidth;
   card.classList.add('flipped');
   spawnFireworks();
-  // Play a sound effect
-  playNote(523,0,.3,'sine',.2);
-  playNote(659,0.35,.3,'sine',.2);
 }
 
 // ── COUNTDOWN ──
@@ -1105,99 +1081,6 @@ function startCountdown(){
   }
   tick(); setInterval(tick,1000);
 }
-
-// ── MUSIC ──
-let audioCtx=null, musicOn=false, gainNode=null, masterVolume=null;
-function toggleMusic(){
-  const btn=document.getElementById('musicToggle');
-  if(!audioCtx){ 
-    audioCtx=new(window.AudioContext||window.webkitAudioContext)(); 
-    masterVolume=audioCtx.createGain(); 
-    masterVolume.connect(audioCtx.destination); 
-    masterVolume.gain.value=0.15;
-    gainNode=audioCtx.createGain(); 
-    gainNode.connect(masterVolume); 
-  }
-  if(musicOn){ 
-    gainNode.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.5);
-    musicOn=false; 
-    btn.textContent='🎵'; 
-    return; 
-  }
-  musicOn=true; 
-  btn.textContent='🔊';
-  gainNode.gain.setValueAtTime(0.001,audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.15,audioCtx.currentTime+0.3);
-  
-  // Play the Happy Birthday song with harmony
-  playBirthdayMelody();
-}
-
-function playNote(freq,start,dur,wave='sine',vol=0.3){
-  if(!audioCtx||!gainNode) return;
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type=wave; o.frequency.value=freq;
-  g.gain.setValueAtTime(0,audioCtx.currentTime+start);
-  g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+start+.05);
-  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+start+dur);
-  o.connect(g); g.connect(gainNode);
-  o.start(audioCtx.currentTime+start); o.stop(audioCtx.currentTime+start+dur);
-}
-
-function playBirthdayMelody(){
-  // Happy Birthday notes (C major)
-  // [frequency, duration, delay]
-  const notes=[
-    [262, .4, 0],    // C
-    [262, .4, .45],  // C
-    [294, .8, .9],   // D
-    [262, .8, 1.8],  // C
-    [349, .8, 2.7],  // F
-    [330, 1.6, 3.6], // E (longer)
-    
-    [262, .4, 5.3],  // C
-    [262, .4, 5.75], // C
-    [294, .8, 6.2],  // D
-    [262, .8, 7.1],  // C
-    [392, .8, 8],    // G
-    [349, 1.6, 8.9], // F (longer)
-    
-    [262, .4, 10.6], // C
-    [262, .4, 11.05],// C
-    [523, .8, 11.5], // C5
-    [440, .8, 12.4], // A
-    [349, .8, 13.3], // F
-    [330, .8, 14.2], // E
-    [294, 1.6, 15.1],// D (longer)
-    
-    // Harmony notes (lower)
-    [131, .4, 0],    // C low
-    [147, .8, 1.8],  // D low
-    [262, 1.6, 3.6], // C
-    
-    [131, .4, 5.3],
-    [147, .8, 7.1],
-    [262, 1.6, 8.9],
-  ];
-  
-  notes.forEach(([f,dur,delay])=>playNote(f,delay,dur,'sine',.25));
-  
-  // Background ambient tone
-  playNote(262,0,20.5,'sine',.08);
-  playNote(196,3,20.5,'sine',.08);
-  
-  // Loop the music if it's still playing
-  if(musicOn){
-    setTimeout(playBirthdayMelody, 21000);
-  }
-}
-
-// Auto-play soft ambient music on page load for engagement
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    // Don't auto-play due to browser policies, but set up for user to enable
-  },1000);
-});
 
 // ── NATAL CHART ──
 function drawNatalChart(){
